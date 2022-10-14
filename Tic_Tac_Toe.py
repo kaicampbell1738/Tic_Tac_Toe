@@ -1,12 +1,13 @@
 import pygame as py
 import numpy as num
+import random
 import sys
 
 
 #local variables
-person = 1
+person = 0
 playing = True
-width = 300
+width = 600
 height = width
 lineWidth = 15
 boardR = 3
@@ -25,15 +26,29 @@ white = (255, 255, 255)
 
 #build platform
 py.init()
-
-#build screen
 screen = py.display.set_mode((width, height))
 py.display.set_caption('TIC TAC TOE')
-screen.fill( blue )
-
-#build board
+screen.fill( white )
 board = num.zeros((boardR, boardC))
 
+def make_menu():
+    screen.fill( white )
+    font = py.font.Font('freesansbold.ttf', 32)
+    font2 = py.font.SysFont('timesnewroman', 20)
+    text = font.render('Click Either Mouse Button to Start', True, black, white)
+    text2 = font2.render('Click ESC to Return to Menu', True, black, white)
+    text3 = font2.render('Click R to Restart', True, black, white)
+    textRect = text.get_rect()
+    textRect2 = text2.get_rect()
+    textRect3 = text3.get_rect()
+    textRect.center = (width // 2, (height // 2) - 50)
+    textRect2.center = (width // 2, (height // 2))
+    textRect3.center = (width // 2, (height // 2) + 50)
+    screen.blit(text, textRect)
+    screen.blit(text2, textRect2)
+    screen.blit(text3, textRect3)
+
+make_menu()
 #build lines
 def make_lines():
     #horizontal 
@@ -44,7 +59,9 @@ def make_lines():
     py.draw.line(screen, grey_blue, (squareSize,0), (squareSize,width), lineWidth)
     py.draw.line(screen, grey_blue, (2*squareSize,0), (2*squareSize,width), lineWidth)
 
-make_lines()
+def set_board():
+    screen.fill( blue )
+    board = num.zeros((boardR, boardC))
 
 #place square
 def place_square(person, row, column):
@@ -101,7 +118,7 @@ def check_win(person):
 def reset():
     screen.fill(blue)
     make_lines()
-    player = 1
+    person = 1
     for i in range(boardR):
         for j in range(boardC):
             board[i][j] = 0
@@ -128,6 +145,8 @@ while True:
             sys.exit()
 
         if event.type == py.MOUSEBUTTONDOWN and playing:
+            set_board()
+            make_lines()
 
             mouseX = event.pos[0]
             mouseY = event.pos[1]
@@ -142,17 +161,34 @@ while True:
                         playing = False
                     person = 2
 
-                elif person == 2:
-                    place_square(2, clickedRow, clickedColumn)
-                    if check_win(person):
-                        playing = False
-                    person = 1
-
                 draw_objects()
+            if person == 0:
+                person = 1
+
+        if playing:
+            if person == 2:
+                randR = random.randint(0, boardR- 1)
+                randC = random.randint(0, boardC- 1)
+                while unoccupied_square(randR, randC) != True:
+                    randR = random.randint(0, boardR- 1)
+                    randC = random.randint(0, boardC- 1)
+                place_square(2, randR, randC)
+                if check_win(person):
+                    playing = False
+                person = 1
+
+            draw_objects()
+
         if event.type == py.KEYDOWN:
-            if event.key == py.K_r:
+            if event.key == py.K_r and person != 0:
                 playing = True
                 reset()
+
+            if event.key == py.K_ESCAPE:
+                playing = True
+                reset()
+                make_menu()
+                person = 0
                 
 
     py.display.update()
